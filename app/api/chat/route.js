@@ -1,5 +1,5 @@
 import {NextResponse} from 'next/server'
-import OpenAi from 'openai'
+import OpenAI from 'openai'
 
 const systemPrompt = `
 You are an AI college counselor specialized in transfer applications for the University of California system (UCLA, UCSD, UCI, and UC Davis) and Ivy League schools (Columbia, Stanford, and Cornell). 
@@ -15,13 +15,14 @@ Your guidance should be clear, accurate, and supportive, considering each studen
 `;
 
 export async function POST(req){
-    const openai = newOpenAI()
+    const openai = new OpenAI()
     const data = await req.json()
 
     const completion = await openai.chat.completions.create({
         messages: [
         {
-            role:'system', content:systemPrompt
+            role:'system', 
+            content:systemPrompt,
         },
         ...data,
         ],
@@ -31,13 +32,14 @@ export async function POST(req){
 
     const stream = new ReadableStream({
         async start(controller){
-            const encoder = newTextEncoder()
+            const encoder = new TextEncoder()
             try{
-                for await (const chunk of completion)
-                const content = chunk.choices[0].delta.content
-                if (content){
-                    const text = encoder.encode(contet)
-                    controller.enqueue(text)
+                for await (const chunk of completion){
+                    const content = chunk.choices[0]?.delta?.content
+                    if (content){
+                        const text = encoder.encode(content)
+                        controller.enqueue(text)
+                    }
                 }
             } catch(error){
                 controller.error(err)
@@ -47,6 +49,6 @@ export async function POST(req){
         },
     })
 
-    return new NextResponse {stream}
+    return new NextResponse(stream);
     
 }
